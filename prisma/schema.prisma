@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Document {
+  id        String           @id @default(cuid())
+  filename  String
+  fileType  String           // "pdf" or "txt"
+  fileSize  Int
+  status    String           @default("processing") // processing, ready, error
+  chunkCount Int             @default(0)
+  errorMessage String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  chunks    DocumentChunk[]
+}
+
+model DocumentChunk {
+  id         String   @id @default(cuid())
+  documentId String
+  content    String
+  chunkIndex Int
+  tokens     Int      @default(0)
+  tfidf      String   @default("{}") // JSON string of TF-IDF vector
+  createdAt  DateTime @default(now())
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+}
